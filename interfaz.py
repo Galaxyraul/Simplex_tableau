@@ -33,24 +33,25 @@ name.pack(side="top",fill="x",padx=2,pady = 20)
 options = ctk.CTkFrame(sidebar,height=600,fg_color="transparent")
 options.pack(side="bottom",pady=50,fill="x",padx=2)
 
+main = ctk.CTkFrame(master=app)
+main.pack(side="right", fill="both", expand=True)
+
 buttons = []
 for i in range(len(tab_list)):
     button = ctk.CTkButton(options if i != 0 else name, text=tab_list[i], command=lambda i=i : change_frame(current[0],i),fg_color="transparent",corner_radius=0)
     button.pack(pady=10, fill="x")
     buttons.append(button)
 # Crear un contenedor para las pantallas
-main = ctk.CTkFrame(master=app)
-main.pack(side="right", fill="both", expand=True)
-
 
 frames = []
-
 for i in range(len(tab_list)):
     frame = ctk.CTkFrame(main) 
-    frame.pack(fill="both", expand=True)
-    label = ctk.CTkLabel(frame, text=f"This is the {tab_list[i]} tab")
-    label.pack(pady=10)
-    frame.pack_forget()
+    title = ctk.CTkFrame(frame,fg_color="blue")
+    title.pack(side="top",fill="x")
+    title = ctk.CTkLabel(title,font=("Arial",24),text=tab_list[i])
+    title.pack()
+    content = ctk.CTkFrame(frame,fg_color="red")
+    content.pack(side="top",expand=True,fill="x")
     frames.append(frame)
 
 
