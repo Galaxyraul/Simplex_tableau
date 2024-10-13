@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import tableau_method as tm
+import methods.tableau_method as tm
 
 current = ["Simplex Tableau"]
 tableau = {}
