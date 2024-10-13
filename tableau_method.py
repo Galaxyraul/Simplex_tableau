@@ -1,11 +1,11 @@
 import numpy as np
-import time
+import json
 
 # Convertir ecuaciones minimo a máximo
 def min_to_max(constraints,to_transform,coefficients):
     coefficients *= -1
-    for indice in to_transform:
-        constraints[indice] *= -1
+    for index in to_transform:
+        constraints[index]*=-1
 
 # Eliminar igualdades
 def remove_equalities(equalities,constraints):
@@ -19,27 +19,48 @@ def remove_equalities(equalities,constraints):
     constraints = np.delete(constraints,equalities,axis=0)
     return constraints
 
-def read_csv(path):
-  pass
-
+def read_json(path):
+    with open(path, 'r') as file:
+        data = json.load(file)
+    problems = data['problems']
+    text = ""
+    for problem in problems:
+        text+=f"Problema {problem["id"]}:\n"
+        objective = problem['objective']
+        constraints = problem['constraints']
+        operators = problem['operators']
+        coefficients,base,values=build_tableau(objective,constraints,operators)
+        base,values,result=core(coefficients,base,values)
+        text+=get_result(base,values,result,objective)
+        text+="\n"
+    print(text)
+    
+def get_result(base,values,result,objective):
+    text = f"Z={result[0]} "
+    for i in range(len(base)):
+        print(base[i])
+        if base[i] < len(objective):
+            text += f"x{base[i]}={values[i,0]} "
+    return text   
 def check_is_max(constraints,operators,objective):
     constraints = np.array(constraints,dtype="float")
     operators = np.array(operators,dtype="float") 
     objective = np.array(objective,dtype="float")
-    equalities = np.where(operators==1)[0]
+    equalities = np.where(operators==0)[0]
     to_transform = np.where(operators==-1)[0]
+    operators = operators[operators != 0] 
     constraints = remove_equalities(equalities,constraints)
     if(to_transform.size > 0):
         min_to_max(constraints,to_transform,objective)
     return constraints,objective
 
 def build_tableau(objective,constraints,operators):
-    
     objective.insert(0,0)
     constraints,objective = check_is_max(constraints,operators,objective)
     coefficients = np.concatenate([objective,np.zeros(constraints.shape[0])])
     base = [i for i in range(len(objective),len(objective)+constraints.shape[0])]
-    values = np.concatenate([constraints,np.identity(constraints.shape[0])],axis=1)
+
+    values = np.concatenate([constraints,np.identity(constraints.shape[0])*operators],axis=1)
     return[coefficients,base,values]
     
 def core(coefficients,base,values):

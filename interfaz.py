@@ -1,23 +1,22 @@
 import customtkinter as ctk
 import tableau_method as tm
-import numpy as np
+
 current = ["Simplex Tableau"]
 tableau = {}
 tab_list = [
     "Simplex Tableau","Cargar archivo","Función Objetivo","Restricciones","Tableau"
 ]
 tableau["objective"] = [0.5,0.5]
-tableau["constraints"] = [[15000,5,3],[15000,3,5],[10000,1,0]]
-tableau["operators"] = [0, 0, 0]
+tableau["constraints"] = [[15000,5,2],[15000,2,5],[1000,1,0]]
+tableau["operators"] = [1, 1,1]
 tableau["coefficients"],tableau["base"],tableau["values"] = tm.build_tableau(tableau["objective"],tableau["constraints"],tableau["operators"])
-operators_to_int = {">=":-1,"<=":0,"=":1}
+operators_to_int = {">=":-1,"<=":1,"=":0}
 tabs = {key:None for key in tab_list}
 
 
 coefficients = []
-frames = []
+
 buttons = []
-contents = []
 def change_frame(remove,render):
     tabs[remove]["frame"].pack_forget()
     # Show the selected frame
@@ -27,13 +26,12 @@ def change_frame(remove,render):
 
 def select_button(remove,selected):
     tabs[remove]["button"].configure(fg_color="transparent")
-    tabs[selected]["button"].configure(fg_color = "blue")
+    tabs[selected]["button"].configure(fg_color = "black")
 
 def select_file(entry_path):
     # Abre un cuadro de diálogo para seleccionar un archivo
     file_path = ctk.filedialog.askopenfilename(title="Seleccionar archivo",
-                                               filetypes=[("Archivos CSV", "*.csv"), 
-                                                          ("Archivos de texto", "*.txt"),
+                                               filetypes=[("Archivos json", "*.json"), 
                                                           ("Todos los archivos", "*.*")])
     if file_path:
         entry_path.delete(0, "end")  # Borra lo que haya en el campo
@@ -45,7 +43,7 @@ def clear_frame(frame):
 
 def create_main_window():
     app = ctk.CTk()
-    app.geometry("1000x800")
+    app.geometry("1200x800")
     app.title("Interfaz Principal")
     # Configuración del tema de CustomTkinter
     ctk.set_appearance_mode("dark")  # Cambiar a "light" si prefieres el modo claro
@@ -58,7 +56,7 @@ def create_main_window():
     sidebar = ctk.CTkFrame(master=app, width=300,border_width=2)
     sidebar.pack(side="left", fill="y")
 
-    name = ctk.CTkFrame(sidebar,fg_color="red",height=100)
+    name = ctk.CTkFrame(sidebar,fg_color="transparent",height=100)
     name.pack(side="top",fill="x",padx=2,pady = 20)
 
     options = ctk.CTkFrame(sidebar,height=600,fg_color="transparent")
@@ -69,15 +67,13 @@ def create_main_window():
 def create_tabs(main,options,name):
     for i in tabs:
         frame = ctk.CTkFrame(main) 
-        title = ctk.CTkFrame(frame,fg_color="blue")
-        title.pack(side="top",fill="x")
-        title = ctk.CTkLabel(title,font=("Arial",24),text=i)
+        title = ctk.CTkFrame(frame,fg_color="transparent")
+        title.pack(side="top",fill="x",pady=20)
+        title = ctk.CTkLabel(title,font=("Arial",50),text=i)
         title.pack()
-        content = ctk.CTkFrame(frame,fg_color="red")
+        content = ctk.CTkFrame(frame)
         content.pack(side="top",expand=True,fill="x")
-        frames.append(frame)
         tabs[i]={"frame":frame,"content":content}
-        contents.append(content)
     for i in tabs:
         button = ctk.CTkButton(
                                 name if i == "Simplex Tableau" else options, text=i,
@@ -95,69 +91,67 @@ def init_windows():
     constraints_window()
     result_window()
     tabs[current[0]]["frame"].pack(fill="both", expand=True)
-    tabs[current[0]]["button"].configure(fg_color="blue",font=(("Arial",24)))
-
+    tabs[current[0]]["button"].configure(fg_color="black",font=(("Arial",24)))
 
 def welcome_window():
-    label_intro = ctk.CTkLabel(contents[0],wraplength=300,pady=20,font= ("Arial",18),anchor = "center",
+    label_intro = ctk.CTkLabel(tabs["Simplex Tableau"]["content"],wraplength=400,pady=20,font= ("Arial",18),anchor = "center",
                             text="Bienvenido a mi aplicación de simplex tableau para realizar un problema puedes cargarlo desde un archivo o introducirlo manualmente")
-    load_btn = ctk.CTkButton(contents[0],text="Cargar")
-    manual_btn = ctk.CTkButton(contents[0],text="Manual")
+    load_btn = ctk.CTkButton(tabs["Simplex Tableau"]["content"],text="Cargar",command=lambda:change_frame(current[0],"Cargar archivo"))
+    manual_btn = ctk.CTkButton(tabs["Simplex Tableau"]["content"],text="Manual",command=lambda:change_frame(current[0],"Función Objetivo"))
 
     label_intro.grid(row=0, column=0, columnspan=2, pady=20)  # La etiqueta ocupa ambas columnas
     load_btn.grid(row=1, column=0, padx=10, pady=10)
     manual_btn.grid(row=1, column=1, padx=10, pady=10)
 
     # Configurar las columnas para que se expandan
-    contents[0].grid_columnconfigure(0, weight=1)
-    contents[0].grid_columnconfigure(1, weight=1)
-
+    tabs["Simplex Tableau"]["content"].grid_columnconfigure([0,1], weight=1)
+    
 def load_from_file():
-    label_problems = ctk.CTkLabel(contents[1],text="número de problemas:")
-    n_problems = ctk.CTkEntry(contents[1],placeholder_text="Introduce un valor")
-    
-    label_separator = ctk.CTkLabel(contents[1],text="separador:")
-    separator = ctk.CTkEntry(contents[1],placeholder_text="Introduce un valor")
-    
 
-    select_file_btn = ctk.CTkButton(contents[1], text="Seleccionar archivo", command= lambda:select_file(entry_path))
-    entry_path = ctk.CTkEntry(contents[1], placeholder_text="Ruta del archivo", width=300)
+    select_file_btn = ctk.CTkButton(tabs["Cargar archivo"]["content"], text="Seleccionar archivo", command= lambda:select_file(entry_path))
+    entry_path = ctk.CTkEntry(tabs["Cargar archivo"]["content"], placeholder_text="Ruta del archivo", width=300)
     
-    label_problems.grid(row=0,column=0,pady=0)
-    label_separator.grid(row=1,column=0,pady=0)
-    select_file_btn.grid(row=2,column=0,pady=0)
+    process_btn = ctk.CTkButton(tabs["Cargar archivo"]["content"],text="Ejecutar",command=lambda:tm.read_json(entry_path.get())) 
+    select_file_btn.grid(row=2,column=0,sticky="e",pady=5,padx=2)
+    process_btn.grid(row=3,column=0,pady=5,padx=2,columnspan=2)
     
-    n_problems.grid(row=0,column=1)
-    separator.grid(row=1,column=1)
-    entry_path.grid(row=2,column=1,pady=0)
-
+    entry_path.grid(row=2,column=1,sticky="w",pady=5,padx=2)
+    tabs["Cargar archivo"]["content"].grid_columnconfigure([0,1], weight=1)
+    
 def f_objetivo():
-    label_variables = ctk.CTkLabel(contents[2],text="Número de variables:")
-    n_variables = ctk.CTkEntry(contents[2],placeholder_text="Introduce un valor")
-    
-    label_variables.grid(row=0,column=0)
-    n_variables.grid(row=0,column=1)
-    
-    accept_btn = ctk.CTkButton(contents[2],text="Aceptar",command=lambda:show_obj(int(n_variables.get()),contents[2]))
-    accept_btn.grid(row=1, column=0,columnspan=2)
-    #TODO Revisar cambiar número
+    header = ctk.CTkFrame(tabs["Función Objetivo"]["content"],fg_color="transparent")
+    label_variables = ctk.CTkLabel(header,text="Número de variables:")
+    n_variables = ctk.CTkEntry(header,placeholder_text="Introduce un valor")
+    label_variables.grid(row=0,column=0,pady=10,padx=2)
+    n_variables.grid(row=0,column=1,pady=10,padx=2)
+    function = ctk.CTkFrame(tabs["Función Objetivo"]["content"],fg_color="transparent")
+    accept_btn = ctk.CTkButton(header,text="Aceptar",command=lambda:show_obj(int(n_variables.get()),function,tabs["Función Objetivo"]["content"]))
+    accept_btn.grid(row=0, column=2,padx=2)
+    header.grid(row=0,column=0)
+    function.grid(row=1,column = 0)
+    tabs["Función Objetivo"]["content"].grid_columnconfigure([0],weight=1)
+    #TODO Revisar cambiar número,arreglar display
 
-def show_obj(n_variables,frame):
+def show_obj(n_variables,frame,frame2):
     clear_frame(frame)
+    bottom = ctk.CTkFrame(frame2)
     fields = []
     label = ctk.CTkLabel(frame,text=f"Z=")
-    label.grid(row=2,column=0)
+    label.grid(row=2,column=0,sticky="w")
     for i in range(n_variables):
         label = ctk.CTkLabel(frame,text=f"x{i+1}")
-        label.grid(row=2,column=2*(i+1))
+        label.grid(row=2,column=2*(i+1)-1,sticky="w",padx=2,pady=5)
         text_entry = ctk.CTkEntry(frame)
-        text_entry.grid(row=2,column=2*(i+1) + 1)
+        text_entry.grid(row=2,column=2*(i+1),sticky="w",padx=2,pady=5)
         fields.append(text_entry)
-    get_btn = ctk.CTkButton(frame,command=lambda:set_objective([float(entry.get()) for entry in fields]))
-    get_btn.grid(row=3,column = 0 ,columnspan= n_variables)
+    get_btn = ctk.CTkButton(bottom,text="Guardar",command=lambda:set_objective([float(entry.get()) for entry in fields]))
+    bottom.grid(row=2,column=0)
+    get_btn.pack()
+    
 
 def set_objective(values):
     tableau["objective"] = values
+    change_frame(current[0],"Restricciones")
     
 def add_constraint_row(frame,row,entries,operators):
     row[0] +=1
@@ -168,42 +162,54 @@ def add_constraint_row(frame,row,entries,operators):
     text_entry = ctk.CTkEntry(frame)
     fields.append(text_entry)
     entries.append(fields)
-    label.grid(row=row,column=last + 1)
-    text_entry.grid(row=row,column=last + 2)
+    label.grid(row=row,column=last + 1,pady=5,padx=2)
+    text_entry.grid(row=row,column=last + 2,pady=5,padx=2)
     operator = ctk.CTkComboBox(frame,values=["=","<=",">="])
     operators.append(operator)
     operator.grid(row=row,column=last)
     for i in range(len(tableau["objective"])):
-        label = ctk.CTkLabel(frame,text=f"x{i}=")
-        label.grid(row=row,column=2*i)
+        label = ctk.CTkLabel(frame,text=f"x{i+1}=")
+        label.grid(row=row,column=2*i,pady=5,padx=2)
         text_entry = ctk.CTkEntry(frame)
-        text_entry.grid(row=row,column=2*i + 1)
+        text_entry.grid(row=row,column=2*i + 1,pady=5,padx=2)
         fields.append(text_entry)
         
 def constraints_window():
     row = [0]
     entries = []
     operators = []
-    add_constraint_btn = ctk.CTkButton(contents[3],text="Añadir restricción",command= lambda :add_constraint_row(contents[3],row,entries,operators))
-    get_values = ctk.CTkButton(contents[3],text="Guardar restricciones",command=lambda:save_constraints(entries,operators))
-    add_constraint_btn.grid(row = 0,column = 0)
-    get_values.grid(row = 0,column = 1)
+    header = ctk.CTkFrame(tabs["Restricciones"]["content"])
+    constraints = ctk.CTkFrame(tabs["Restricciones"]["content"],fg_color="transparent")
+    add_constraint_btn = ctk.CTkButton(header,text="Añadir restricción",command= lambda :add_constraint_row(constraints,row,entries,operators))
+    get_values = ctk.CTkButton(header,text="Guardar restricciones",command=lambda:save_constraints(entries,operators))
+    add_constraint_btn.grid(row = 0,column = 0,pady=5,padx=2)
+    get_values.grid(row = 0,column = 1,pady=5,padx=2)
+    header.grid(row=0)
+    constraints.grid(row=1)
+    tabs["Restricciones"]["content"].grid_columnconfigure([0],weight=1)
 
 def save_constraints(entries,operators):
     tableau["constraints"] = [[float(entry.get()) for entry in constraint] for constraint in entries]
     tableau["operators"] = [operators_to_int[operator.get()] for operator in operators]
     print(tableau["objective"],tableau["constraints"],tableau["operators"])
     tableau["coefficients"],tableau["base"],tableau["values"] = tm.build_tableau(tableau["objective"],tableau["constraints"],tableau["operators"])
-
+    clear_frame(tabs["Tableau"]["content"])
+    result_window()
+    change_frame(current[0],"Tableau")
+    
 def result_window():
     frame = tabs["Tableau"]["content"]
     to_solve = ctk.CTkFrame(frame,border_width=2,border_color="grey")
-    to_solve.grid(row=0,column=0,padx=5,pady=5)
     print_table(to_solve,"coefficients","base","values")
+    to_solve.grid(row=0,column=0,padx=5,pady=5)
+    label = ctk.CTkLabel(to_solve,text=f"Original",font=("Arial",20))
+    label.grid(row=0,column=1,padx=5,pady=5)
     solved = ctk.CTkFrame(frame,border_width=1,border_color="grey")
+    label = ctk.CTkLabel(solved,text=f"Resuelto",font=("Arial",20))
+    label.grid(row=0,column=1,padx=5,pady=5)
+    frame.grid_columnconfigure([0,1], weight=1)
     resolve_btn = ctk.CTkButton(frame,text="Resolver",command=lambda:solve_tableau(solved,frame))        
     resolve_btn.grid(row=2,columnspan=2)
-    frame.grid_columnconfigure(0, weight=1)
 
 def solve_tableau(frame,frame2):
     tableau["base"],tableau["values"],tableau["result"]=tm.core(tableau["coefficients"],tableau["base"],tableau["values"])
@@ -216,34 +222,33 @@ def solve_tableau(frame,frame2):
         print(tableau["base"][i])
         if tableau["base"][i] < len(tableau["objective"]):
             texto += f"x{tableau["base"][i]}={tableau["values"][i,0]} "
-    result_label = ctk.CTkLabel(frame2,text=texto)
-    result_label.grid(row=1,column=0,columnspan=2)
-    print(tableau["values"])
-    print(texto)
-    frame.grid_columnconfigure(1, weight=1)
     
+    result_label = ctk.CTkLabel(frame2,text=texto,font=("Arial",20))
+    result_label.grid(row=1,column=0,columnspan=2)
+    print(tableau["result"])
+ 
     
 def print_table(frame,key1,key2,key3):
-    label = ctk.CTkLabel(frame,text=f"V.B")
+    label = ctk.CTkLabel(frame,text=f"V.B",font=("Arial",20))
     label.grid(row=1,column=1,padx=5,pady=5)
-    label = ctk.CTkLabel(frame,text=f"B")
+    label = ctk.CTkLabel(frame,text=f"B",font=("Arial",20))
     label.grid(row=1,column=2,padx=5,pady=5)
-    label = ctk.CTkLabel(frame,text=f"|C_i")
-    label.grid(row=1,column=0)
+    label = ctk.CTkLabel(frame,text=f"|C_i",font=("Arial",20))
+    label.grid(row=0,column=2)
     for i in range(tableau[key1].shape[0]-1):
-        label = ctk.CTkLabel(frame,text=f"|{tableau[key1][i + 1]}")
+        label = ctk.CTkLabel(frame,text=f"|{tableau[key1][i + 1]}",font=("Arial",20))
         label.grid(row=1,column=i+3,padx=5)
-        label = ctk.CTkLabel(frame,text=f"|x_{i+1}")
+        label = ctk.CTkLabel(frame,text=f"|x_{i+1}",font=("Arial",20))
         label.grid(row=0,column=i+3,padx=5,pady=5)
     for i in range(len(tableau[key2])):
-        label = ctk.CTkLabel(frame,text=f"|x_{tableau[key2][i]}")
-        label.grid(row=i+2,column=0,padx=5,pady=5)
-        label = ctk.CTkLabel(frame,text=f"|{tableau[key2][i]}")
+        label = ctk.CTkLabel(frame,text=f"|x_{tableau[key2][i]}",font=("Arial",20))
         label.grid(row=i+2,column=1,padx=5,pady=5)
     for i in range(tableau[key3].shape[0]):
         for j in range(tableau[key3].shape[1]):
-            label = ctk.CTkLabel(frame,text=f"|{tableau[key3][i,j]}")
+            label = ctk.CTkLabel(frame,text=f"|{tableau[key3][i,j]}",font=("Arial",20))
             label.grid(row=i+2,column=j+2,padx=5,pady=5)  
+            
+            
 def main():
     app,main,name,options = create_main_window()
     create_tabs(main,options,name)
