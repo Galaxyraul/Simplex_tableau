@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import methods.tableau_method as tm
+import tableau_method as tm
 
 current = ["Simplex Tableau"]
 tableau = {}
@@ -9,14 +9,10 @@ tab_list = [
 tableau["objective"] = [0.5,0.5]
 tableau["constraints"] = [[15000,5,2],[15000,2,5],[1000,1,0]]
 tableau["operators"] = [1, 1,1]
-tableau["coefficients"],tableau["base"],tableau["values"] = tm.build_tableau(tableau["objective"],tableau["constraints"],tableau["operators"])
+tableau["coefficients"],tableau["base"],tableau["values"] = tm.build_tableau(tableau["objective"],tableau["constraints"],tableau["operators"],False)
 operators_to_int = {">=":-1,"<=":1,"=":0}
 tabs = {key:None for key in tab_list}
 
-
-coefficients = []
-
-buttons = []
 def change_frame(remove,render):
     tabs[remove]["frame"].pack_forget()
     # Show the selected frame
@@ -106,34 +102,43 @@ def welcome_window():
     # Configurar las columnas para que se expandan
     tabs["Simplex Tableau"]["content"].grid_columnconfigure([0,1], weight=1)
     
-def load_from_file():
+def process_file(frame,path):
+    result=tm.read_json(path)
+    clear_frame(frame)
+    result_label=ctk.CTkLabel(frame,text="Resultado:\n"+result,justify="left")
+    result_label.pack()
+    frame.grid(row=2,column=0,pady=5,padx=2,columnspan=2)
 
+def load_from_file():
     select_file_btn = ctk.CTkButton(tabs["Cargar archivo"]["content"], text="Seleccionar archivo", command= lambda:select_file(entry_path))
     entry_path = ctk.CTkEntry(tabs["Cargar archivo"]["content"], placeholder_text="Ruta del archivo", width=300)
-    
-    process_btn = ctk.CTkButton(tabs["Cargar archivo"]["content"],text="Ejecutar",command=lambda:tm.read_json(entry_path.get())) 
-    select_file_btn.grid(row=2,column=0,sticky="e",pady=5,padx=2)
-    process_btn.grid(row=3,column=0,pady=5,padx=2,columnspan=2)
-    
-    entry_path.grid(row=2,column=1,sticky="w",pady=5,padx=2)
+    frame = ctk.CTkFrame(tabs["Cargar archivo"]["content"])
+    process_btn = ctk.CTkButton(tabs["Cargar archivo"]["content"],text="Ejecutar",command=lambda:process_file(frame,entry_path.get())) 
+    select_file_btn.grid(row=0,column=0,sticky="e",pady=5,padx=2)
+    process_btn.grid(row=1,column=0,pady=5,padx=2,columnspan=2)
+    entry_path.grid(row=0,column=1,sticky="w",pady=5,padx=2)
     tabs["Cargar archivo"]["content"].grid_columnconfigure([0,1], weight=1)
     
 def f_objetivo():
     header = ctk.CTkFrame(tabs["Función Objetivo"]["content"],fg_color="transparent")
     label_variables = ctk.CTkLabel(header,text="Número de variables:")
     n_variables = ctk.CTkEntry(header,placeholder_text="Introduce un valor")
+    objetivo_label = ctk.CTkLabel(header,text="¿Cuál es el objetivo de la función? ")
+    objetivo=ctk.CTkComboBox(header,values=["Maximizar","Minimizar"])
     label_variables.grid(row=0,column=0,pady=10,padx=2)
     n_variables.grid(row=0,column=1,pady=10,padx=2)
     function = ctk.CTkFrame(tabs["Función Objetivo"]["content"],fg_color="transparent")
-    accept_btn = ctk.CTkButton(header,text="Aceptar",command=lambda:show_obj(int(n_variables.get()),function,tabs["Función Objetivo"]["content"]))
-    accept_btn.grid(row=0, column=2,padx=2)
+    accept_btn = ctk.CTkButton(header,text="Aceptar",command=lambda:show_obj(int(n_variables.get()),function,tabs["Función Objetivo"]["content"],objetivo))
+    accept_btn.grid(row=3, column=0,padx=2,columnspan=2)
     header.grid(row=0,column=0)
-    function.grid(row=1,column = 0)
+    objetivo_label.grid(row=1,column=0,padx=5,pady=5)
+    objetivo.grid(row=1,column=1,padx=5,pady=5)
     tabs["Función Objetivo"]["content"].grid_columnconfigure([0],weight=1)
     #TODO Revisar cambiar número,arreglar display
 
-def show_obj(n_variables,frame,frame2):
+def show_obj(n_variables,frame,frame2,objetivo):
     clear_frame(frame)
+    tableau["minimize"] = objetivo == "Minimizar"
     bottom = ctk.CTkFrame(frame2)
     fields = []
     label = ctk.CTkLabel(frame,text=f"Z=")
@@ -145,15 +150,16 @@ def show_obj(n_variables,frame,frame2):
         text_entry.grid(row=2,column=2*(i+1),sticky="w",padx=2,pady=5)
         fields.append(text_entry)
     get_btn = ctk.CTkButton(bottom,text="Guardar",command=lambda:set_objective([float(entry.get()) for entry in fields]))
+    frame.grid(row=1,column = 0)
     bottom.grid(row=2,column=0)
     get_btn.pack()
     
-
 def set_objective(values):
     tableau["objective"] = values
     change_frame(current[0],"Restricciones")
     
 def add_constraint_row(frame,row,entries,operators):
+    frame.grid(row=1)
     row[0] +=1
     row = row[0]
     fields = []
@@ -185,14 +191,13 @@ def constraints_window():
     add_constraint_btn.grid(row = 0,column = 0,pady=5,padx=2)
     get_values.grid(row = 0,column = 1,pady=5,padx=2)
     header.grid(row=0)
-    constraints.grid(row=1)
     tabs["Restricciones"]["content"].grid_columnconfigure([0],weight=1)
 
 def save_constraints(entries,operators):
     tableau["constraints"] = [[float(entry.get()) for entry in constraint] for constraint in entries]
     tableau["operators"] = [operators_to_int[operator.get()] for operator in operators]
     print(tableau["objective"],tableau["constraints"],tableau["operators"])
-    tableau["coefficients"],tableau["base"],tableau["values"] = tm.build_tableau(tableau["objective"],tableau["constraints"],tableau["operators"])
+    tableau["coefficients"],tableau["base"],tableau["values"] = tm.build_tableau(tableau["objective"],tableau["constraints"],tableau["operators"],tableau["minimize"])
     clear_frame(tabs["Tableau"]["content"])
     result_window()
     change_frame(current[0],"Tableau")
@@ -226,8 +231,7 @@ def solve_tableau(frame,frame2):
     result_label = ctk.CTkLabel(frame2,text=texto,font=("Arial",20))
     result_label.grid(row=1,column=0,columnspan=2)
     print(tableau["result"])
- 
-    
+
 def print_table(frame,key1,key2,key3):
     label = ctk.CTkLabel(frame,text=f"V.B",font=("Arial",20))
     label.grid(row=1,column=1,padx=5,pady=5)
@@ -247,8 +251,7 @@ def print_table(frame,key1,key2,key3):
         for j in range(tableau[key3].shape[1]):
             label = ctk.CTkLabel(frame,text=f"|{tableau[key3][i,j]}",font=("Arial",20))
             label.grid(row=i+2,column=j+2,padx=5,pady=5)  
-            
-            
+                        
 def main():
     app,main,name,options = create_main_window()
     create_tabs(main,options,name)

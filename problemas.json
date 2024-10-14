@@ -2,23 +2,56 @@
     "problems": [
       {
         "id": 1,
-        "objective": [0.5, 0.5],
+        "objective": [0.2, 0.2],
         "constraints": [
-          [15000, 5, 3],
           [15000, 3, 5],
+          [15000, 5, 3],
           [10000, 1, 0]
         ],
-        "operators": [1, 1, 1]
+        "operators": [1, 1, 1],
+        "minimize": false
       },
       {
         "id": 2,
-        "objective": [0.5, 0.5],
+        "objective": [30000, 10000],
         "constraints": [
-          [15000, 5, 3],
-          [15000, 3, 5],
-          [10000, 1, 0]
+          [80, 20, 10],
+          [6, 1, 1]
         ],
-        "operators": [1, 1, 1]
+        "operators": [1, 1],
+        "minimize": false
+      },
+      {
+        "id": 3,
+        "objective": [5, 2],
+        "constraints": [
+          [30, 2, 2],
+          [40, 4, 1],
+          [10,0,1]
+        ],
+        "operators": [1, 1,-1],
+        "minimize": false
+      },
+      {
+        "id": 4,
+        "objective": [3000, 2000],
+        "constraints": [
+          [9, 1, 1],
+          [4, 1, 0],
+          [0,-0.5,1]
+        ],
+        "operators": [1, -1,-1],
+        "minimize": false
+      },
+      {
+        "id": 5,
+        "objective": [200, 800],
+        "constraints": [
+          [18, 3, 4],
+          [4,-1,2]
+        ],
+        "operators": [1,1],
+        "minimize": false
       }
     ]
   }
