@@ -10,7 +10,7 @@ def minimize_to_max(constraints,to_transform,coefficients):
 # Eliminimizear igualdades
 def remove_equalities(equalities,constraints):
     for index in equalities:
-        pivot = np.argminimize(constraints[index,1:]) + 1
+        pivot = np.argmin(constraints[index,1:]) + 1
         constraints[index] /= constraints[index,pivot]
         constraints[index,pivot] = 0
         for row in range(constraints.shape[0]):

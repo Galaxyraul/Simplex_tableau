@@ -15,7 +15,6 @@ tabs = {key:None for key in tab_list}
 
 def change_frame(remove,render):
     tabs[remove]["frame"].pack_forget()
-    # Show the selected frame
     tabs[render]["frame"].pack(fill="both", expand=True)
     current[0] = render
     select_button(remove,render)
@@ -25,7 +24,6 @@ def select_button(remove,selected):
     tabs[selected]["button"].configure(fg_color = "black")
 
 def select_file(entry_path):
-    # Abre un cuadro de diálogo para seleccionar un archivo
     file_path = ctk.filedialog.askopenfilename(title="Seleccionar archivo",
                                                filetypes=[("Archivos json", "*.json"), 
                                                           ("Todos los archivos", "*.*")])
