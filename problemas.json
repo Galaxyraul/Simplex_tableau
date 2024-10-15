@@ -6,7 +6,7 @@
         "constraints": [
           [15000, 3, 5],
           [15000, 5, 3],
-          [10000, 1, 0]
+          [1000, 1, 0]
         ],
         "operators": [1, 1, 1],
         "minimize": false
@@ -25,7 +25,7 @@
         "id": 3,
         "objective": [5, 2],
         "constraints": [
-          [30, 2, 2],
+          [30, 2, 1],
           [40, 4, 1],
           [10,0,1]
         ],
@@ -52,6 +52,17 @@
         ],
         "operators": [1,1],
         "minimize": false
+      },
+      {
+        "id": 6,
+        "objective": [2, -3,6],
+        "constraints": [
+          [7,3,-1,2],
+          [12,-2,-4,0],
+          [10,-4,3,8]
+        ],
+        "operators": [1,1,1],
+        "minimize": true
       }
     ]
   }

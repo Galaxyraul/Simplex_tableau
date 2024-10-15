@@ -3,14 +3,13 @@ import json
 
 # Convertir ecuaciones minimizeimo a máximo
 def minimize_to_max(constraints,to_transform,coefficients):
-    
     for index in to_transform:
         constraints[index]*=-1
 
 # Eliminimizear igualdades
 def remove_equalities(equalities,constraints):
     for index in equalities:
-        pivot = np.argminimize(constraints[index,1:]) + 1
+        pivot = np.argmin(constraints[index,1:]) + 1
         constraints[index] /= constraints[index,pivot]
         constraints[index,pivot] = 0
         for row in range(constraints.shape[0]):
@@ -60,7 +59,7 @@ def check_is_max(constraints,operators,objective,minimize):
     remove_greater(constraints,to_transform)
     constraints = remove_equalities(equalities,constraints)
     if(minimize):
-        coefficients *= -1
+        objective *= -1
     return constraints,objective
 
 def build_tableau(objective,constraints,operators,minimize):
