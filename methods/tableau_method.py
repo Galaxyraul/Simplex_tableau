@@ -1,23 +1,23 @@
 import numpy as np
 import json
 
-# Convertir ecuaciones minimizeimo a máximo
+# Convertir ecuaciones de mayor-igual a menor-igual
 def minimize_to_max(constraints,to_transform,coefficients):
     for index in to_transform:
         constraints[index]*=-1
 
-# Eliminimizear igualdades
+# Eliminar igualdades
 def remove_equalities(equalities,constraints):
+    if (len(equalities) == 0):
+        return constraints
+    print(equalities)
+    rows_to_add = []
     for index in equalities:
-        pivot = np.argmin(constraints[index,1:]) + 1
-        constraints[index] /= constraints[index,pivot]
-        constraints[index,pivot] = 0
-        for row in range(constraints.shape[0]):
-            if row not in equalities:
-                constraints[row] += constraints[index]*constraints[row,pivot]
-    constraints = np.delete(constraints,equalities,axis=0)
+        rows_to_add.append(-constraints[index])
+    constraints = np.vstack([constraints,np.array(rows_to_add)])
     return constraints
 
+# Lector de json y resolver
 def read_json(path):
     with open(path, 'r') as file:
         data = json.load(file)
@@ -34,7 +34,8 @@ def read_json(path):
         text+=get_result(base,values,result,objective)
         text+="\n"
     return text
-    
+
+# Extractor del resultado
 def get_result(base,values,result,objective):
     text = f"Z={result[0]} "
     for i in range(len(base)):
