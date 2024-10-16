@@ -3,7 +3,6 @@ import json
 
 # Convertir ecuaciones minimizeimo a máximo
 def minimize_to_max(constraints,to_transform,coefficients):
-    
     for index in to_transform:
         constraints[index]*=-1
 
@@ -60,7 +59,7 @@ def check_is_max(constraints,operators,objective,minimize):
     remove_greater(constraints,to_transform)
     constraints = remove_equalities(equalities,constraints)
     if(minimize):
-        coefficients *= -1
+        objective *= -1
     return constraints,objective
 
 def build_tableau(objective,constraints,operators,minimize):
